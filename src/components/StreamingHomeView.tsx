@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Hls from 'hls.js';
 import {
   ArrowLeft,
   Check,
@@ -76,8 +77,10 @@ export function StreamingHomeView({
   const [heroIndex, setHeroIndex] = useState(0);
   const [isHeroMuted, setIsHeroMuted] = useState(true);
   const [videoLoaded, setVideoLoaded] = useState(false);
+  const [crossfadeReady, setCrossfadeReady] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const heroVideoRef = useRef<HTMLVideoElement | null>(null);
+  const hlsRef = useRef<Hls | null>(null);
 
   // Section Detail Screen State
   const [selectedSection, setSelectedSection] = useState<StreamSection | null>(null);
@@ -87,12 +90,12 @@ export function StreamingHomeView({
   const activeHero = heroTitles[heroIndex] ?? allTitles[0];
   const progressByTitleId = new Map(watchProgress.map((p) => [p.titleId, p]));
 
-  // Auto-scroll hero carousel every 6 seconds
+  // Auto-scroll hero carousel every 8 seconds
   useEffect(() => {
     if (isPaused || heroTitles.length <= 1) return;
     const timer = window.setInterval(() => {
       setHeroIndex((prev) => (prev + 1) % heroTitles.length);
-    }, 6000);
+    }, 8000);
     return () => window.clearInterval(timer);
   }, [heroTitles.length, isPaused]);
 
@@ -104,24 +107,100 @@ export function StreamingHomeView({
     setHeroIndex((prev) => (prev + 1) % heroTitles.length);
   };
 
-  // Video excerpt preview handling for active hero
+  // Video excerpt preview handling for active hero starting at 50%
   useEffect(() => {
     setVideoLoaded(false);
+    setCrossfadeReady(false);
+
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
+
     const video = heroVideoRef.current;
     if (!video) return;
 
+    video.pause();
+
+    let crossfadeTimer: number | null = null;
+    let didSeekToHalf = false;
+
+    const stream = activeHero?.streamUrl;
+    const fallbackClip = HERO_PREVIEW_CLIPS[heroIndex % HERO_PREVIEW_CLIPS.length];
+    const isHls = typeof stream === 'string' && stream.includes('.m3u8');
+
     const handleLoadedMetadata = () => {
-      if (video.duration && video.duration > 0) {
-        video.currentTime = video.duration * 0.25;
-        video.play().then(() => setVideoLoaded(true)).catch(() => {});
+      if (!didSeekToHalf && video.duration && Number.isFinite(video.duration) && video.duration > 0) {
+        // Jump directly to 50% (halfway through the movie or episode)
+        video.currentTime = video.duration * 0.5;
+        didSeekToHalf = true;
       }
+      video.muted = isHeroMuted;
+      video
+        .play()
+        .then(() => {
+          setVideoLoaded(true);
+          // Wait 1.0s before crossfading video in, allowing the high-res poster to be seen first
+          crossfadeTimer = window.setTimeout(() => {
+            setCrossfadeReady(true);
+          }, 1000);
+        })
+        .catch(() => {
+          // Autoplay policy fallback
+        });
     };
 
+    if (isHls && Hls.isSupported()) {
+      const hls = new Hls({
+        enableWorker: true,
+        lowLatencyMode: false,
+        capLevelToPlayerSize: true,
+      });
+      hlsRef.current = hls;
+      hls.loadSource(stream);
+      hls.attachMedia(video);
+
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        handleLoadedMetadata();
+      });
+
+      hls.on(Hls.Events.LEVEL_LOADED, (_, data) => {
+        if (!didSeekToHalf && data.details?.totalduration) {
+          video.currentTime = data.details.totalduration * 0.5;
+          didSeekToHalf = true;
+        }
+      });
+
+      hls.on(Hls.Events.ERROR, (_, err) => {
+        if (err.fatal) {
+          hls.destroy();
+          hlsRef.current = null;
+          video.src = fallbackClip;
+          video.load();
+        }
+      });
+    } else if (isHls && video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = stream;
+      video.load();
+    } else {
+      video.src = typeof stream === 'string' && stream.endsWith('.mp4') ? stream : fallbackClip;
+      video.load();
+    }
+
     video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    video.addEventListener('canplay', handleLoadedMetadata);
+
     return () => {
+      if (crossfadeTimer) window.clearTimeout(crossfadeTimer);
       video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      video.removeEventListener('canplay', handleLoadedMetadata);
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+      video.pause();
     };
-  }, [activeHero?.id, heroIndex]);
+  }, [activeHero?.id, heroIndex, isHeroMuted]);
 
   // Section Detail View
   if (selectedSection) {
@@ -486,24 +565,19 @@ export function StreamingHomeView({
           alt={activeHero.title}
           referrerPolicy="no-referrer"
           className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-700 ${
-            videoLoaded ? 'opacity-0' : 'opacity-100'
+            crossfadeReady ? 'opacity-0' : 'opacity-100'
           }`}
         />
 
-        {/* Video Preview: Excerpt of the work playing muted in background */}
+        {/* Video Preview: Excerpt of the work playing muted in background starting at 50% */}
         <video
           ref={heroVideoRef}
           key={`${activeHero.id}-${heroIndex}`}
-          src={heroVideoSrc}
-          autoPlay
           muted={isHeroMuted}
           loop
           playsInline
-          onCanPlay={() => setVideoLoaded(true)}
-          onLoadedData={() => setVideoLoaded(true)}
-          onPlaying={() => setVideoLoaded(true)}
           className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-700 ${
-            videoLoaded ? 'opacity-100' : 'opacity-70'
+            crossfadeReady ? 'opacity-100' : 'opacity-0'
           }`}
         />
 
@@ -523,7 +597,13 @@ export function StreamingHomeView({
         {/* Sound toggle button */}
         <button
           type="button"
-          onClick={() => setIsHeroMuted(!isHeroMuted)}
+          onClick={() => {
+            const nextMuted = !isHeroMuted;
+            setIsHeroMuted(nextMuted);
+            if (heroVideoRef.current) {
+              heroVideoRef.current.muted = nextMuted;
+            }
+          }}
           aria-label={isHeroMuted ? 'Ativar Áudio do Trailer' : 'Silenciar'}
           className="absolute top-4 right-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white border border-white/15 backdrop-blur-sm transition-colors hover:bg-black/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5192B]"
         >

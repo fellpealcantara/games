@@ -1,4 +1,5 @@
 import type { DownloadItem, Game, UserProfile } from '../types/store';
+import avatarWinotikk from '../assets/images/avatar_winotikk_1795288189423.jpg';
 
 export const GAMES_CATALOG: Game[] = [
   // ── COUNTER-STRIKE 1.6 ONLINE WEB (FEATURED) ──
@@ -759,7 +760,7 @@ export const INITIAL_USER_PROFILE: UserProfile = {
   username: 'PlayerOne',
   statusText: 'Pronto para jogar',
   level: 42,
-  avatarImage: '/src/assets/images/avatar_winotikk_1795288189423.jpg',
+  avatarImage: avatarWinotikk,
   hoursPlayed: 320,
   achievementsUnlocked: 184,
   memberSince: '2024',

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Bell, Menu, Search, SlidersHorizontal, X } from 'lucide-react';
 import type { StreamingTypeFilter } from '../types/streaming';
 import type { UserProfile } from '../types/store';
+import avatarWinotikk from '../assets/images/avatar_winotikk_1795288189423.jpg';
 
 interface StreamingTopBarProps {
   searchQuery: string;
@@ -146,21 +147,21 @@ export function StreamingTopBar({
         </div>
       </div>
 
-      {/* Right: Category Links + Notifications + Profile (Pixel-perfect to user print) */}
-      <div className="flex items-center gap-6 sm:gap-7 shrink-0">
-        <nav aria-label="Streaming categories" className="hidden md:flex items-center gap-7">
+      {/* Right: Category Links + Notifications + Profile (Pixel-perfect matching user print) */}
+      <div className="flex items-center gap-7 sm:gap-9 shrink-0">
+        <nav aria-label="Streaming categories" className="hidden md:flex items-center gap-8 lg:gap-10">
           {STREAM_TABS.map((tab) => {
-            const isActive = typeFilter === tab;
+            const isActive = typeFilter === tab || (typeFilter === 'All' && tab === 'Movies');
             return (
               <button
                 key={tab}
                 type="button"
-                onClick={() => onSelectTypeFilter(isActive ? 'All' : tab)}
+                onClick={() => onSelectTypeFilter(typeFilter === tab ? 'All' : tab)}
                 aria-pressed={isActive}
-                className={`text-[14px] font-medium transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5192B] px-1 py-0.5 ${
+                className={`text-[15px] font-semibold transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00D2FF] px-1 py-0.5 ${
                   isActive
-                    ? 'font-bold text-white tracking-wide'
-                    : 'text-[#A1A1AA] hover:text-white'
+                    ? 'text-[#00D2FF]'
+                    : 'text-white hover:text-[#00D2FF]'
                 }`}
               >
                 {tab}
@@ -169,7 +170,7 @@ export function StreamingTopBar({
           })}
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3.5">
           <div ref={notifRef} className="relative">
             <button
               type="button"
@@ -179,12 +180,14 @@ export function StreamingTopBar({
               }}
               aria-label="Streaming notifications"
               aria-expanded={notifOpen}
-              className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-[#141414] border border-white/[0.08] text-white transition-colors hover:bg-[#1E1E1E] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5192B]"
+              className="relative flex h-11 w-11 items-center justify-center rounded-[16px] bg-[#141416] border border-white/[0.04] text-white transition-colors hover:bg-[#1E1E22] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00D2FF]"
             >
-              <Bell className="h-[18px] w-[18px] text-white" aria-hidden="true" />
-              {unreadCount > 0 && (
-                <span className="absolute top-2.5 right-2.5 flex h-2.5 w-2.5 rounded-full bg-[#FF2436] ring-2 ring-[#141414]" />
-              )}
+              <div className="relative flex items-center justify-center">
+                <Bell className="h-5 w-5 text-white" aria-hidden="true" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-[#EF4444]" />
+                )}
+              </div>
             </button>
 
             {notifOpen && (
@@ -212,19 +215,19 @@ export function StreamingTopBar({
             type="button"
             onClick={onOpenProfile}
             aria-label={`View profile for ${profile.username}`}
-            className="flex h-11 items-center gap-2.5 rounded-2xl bg-[#141414] border border-white/[0.08] pl-2.5 pr-4 text-left transition-colors hover:bg-[#1E1E1E] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5192B]"
+            className="flex h-11 items-center gap-3 rounded-[16px] bg-[#141416] border border-white/[0.04] pl-2.5 pr-4 text-left transition-colors hover:bg-[#1E1E22] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00D2FF]"
           >
             <img
-              src={profile.avatarImage}
+              src={profile.avatarImage || avatarWinotikk}
               alt={profile.username}
               referrerPolicy="no-referrer"
-              className="h-7 w-7 rounded-full object-cover ring-1 ring-white/15"
+              className="h-8 w-8 rounded-full object-cover ring-1 ring-white/10"
             />
             <div className="hidden sm:flex flex-col leading-tight">
-              <span className="text-[13px] font-bold text-white whitespace-nowrap">
+              <span className="text-[13.5px] font-bold text-white tracking-tight whitespace-nowrap">
                 {profile.username}
               </span>
-              <span className="text-[11px] font-semibold text-[#FF2A3B] whitespace-nowrap">
+              <span className="text-[11.5px] font-medium text-[#EF4444] whitespace-nowrap">
                 View profile
               </span>
             </div>
