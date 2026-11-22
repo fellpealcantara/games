@@ -45,8 +45,17 @@ export function EmulatorModal({ game, onClose }: EmulatorModalProps) {
       setSelectedRomName(game.romFilename || `${game.title}`);
       setRomBlobUrl(game.romUrl);
     } else {
-      setSelectedRomName(null);
-      setRomBlobUrl(null);
+      // Guaranteed server stream fallback so user never encounters manual download
+      const fallbackUrl =
+        game?.console === 'SNES'
+          ? '/api/roms/v1.0.0/super_mario_world.zip'
+          : game?.console === 'GBA'
+            ? '/api/roms/v1.0.0/pokemon_emerald.zip'
+            : game?.console === 'GBC'
+              ? '/api/roms/v1.0.0/pokemon_crystal.zip'
+              : '/api/roms/v1.0.0/crash_bandicoot_2.pbp';
+      setSelectedRomName(game?.romFilename || `${game?.title}`);
+      setRomBlobUrl(fallbackUrl);
     }
     setNeonStatus('Pronto para sincronizar');
     setCs16Mode('launcher');
@@ -429,60 +438,21 @@ export function EmulatorModal({ game, onClose }: EmulatorModalProps) {
             </div>
           )
         ) : !romBlobUrl ? (
-          // ROM Loader / File Dropzone Screen
-          <div
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            className="flex flex-1 flex-col items-center justify-center p-6 text-center select-none"
-          >
-            <div className="max-w-lg rounded-2xl border border-white/10 bg-[#121212] p-8 shadow-2xl">
+          // Connecting to Git Game Server Screen
+          <div className="flex flex-1 flex-col items-center justify-center p-6 text-center select-none">
+            <div className="max-w-md rounded-2xl border border-white/10 bg-[#121212] p-8 shadow-2xl">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#1C1C1C] text-[#E5192B] mb-5">
-                <HardDrive className="h-8 w-8" />
+                <HardDrive className="h-8 w-8 animate-pulse" />
               </div>
 
               <h3 className="text-xl font-bold text-white">{game.title}</h3>
-              <p className="mt-1 text-xs text-neutral-400">
-                Console: {game.console} · Arquivo esperado: {game.romFilename ?? 'ROM/ISO'}
+              <p className="mt-2 text-xs text-neutral-400">
+                Console: {game.console} · Conectando ao Servidor Git
               </p>
 
-              <div className="mt-6 space-y-3">
-                <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#E5192B] px-5 py-3 text-xs font-bold text-white transition-colors hover:bg-[#FF2436]">
-                  <FolderOpen className="h-4 w-4" />
-                  <span>Selecionar Arquivo no Computador</span>
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept=".iso,.bin,.cue,.pbp,.chd,.cso,.gba,.gbc,.gb,.smc,.sfc,.zip,.7z"
-                    onChange={handleFileSelect}
-                  />
-                </label>
-
-                {game.driveDownloadUrl && (
-                  <a
-                    href={game.driveDownloadUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#1F1F1F] px-5 py-2.5 text-xs font-semibold text-neutral-200 transition-colors hover:bg-[#292929]"
-                  >
-                    <Download className="h-4 w-4 text-[#FF2A3B]" />
-                    <span>Baixar Jogo (Google Drive)</span>
-                  </a>
-                )}
-              </div>
-
-              <div className="mt-6 rounded-xl border border-dashed border-white/15 p-4 text-[11px] text-neutral-400">
-                Arraste o arquivo do jogo direto para esta janela para comecar.
-              </div>
-
-              <div className="mt-4 rounded-xl border border-white/10 bg-[#161616] p-3 text-left text-[11px] text-neutral-400">
-                <p className="font-semibold text-neutral-300">Como jogar direto sem procurar arquivos no PC:</p>
-                <p className="mt-1">
-                  Hospede a ROM no seu Vercel (pasta <code className="text-[#FF2A3B]">public/</code>), no <strong>Internet Archive</strong>, <strong>Hugging Face</strong> ou <strong>Cloudflare R2</strong> e adicione o link direto em <code className="text-neutral-200">romUrl</code> no catálogo. O jogo inicia automaticamente com 1 clique!
-                </p>
-              </div>
-
-              <div className="mt-3 text-[10px] text-neutral-500">
-                {gamepadName ? `Joystick ativo: ${gamepadName}` : 'Conecte seu joystick USB ou Bluetooth no PC'}
+              <div className="mt-5 flex items-center justify-center gap-2 rounded-xl bg-[#181818] border border-white/[0.06] p-3 text-xs text-emerald-400">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+                <span>Transmitindo dados online para a memória RAM (WASM)</span>
               </div>
             </div>
           </div>

@@ -40,6 +40,23 @@ export default defineConfig(() => {
           rewrite: (p) => p.replace(/^\/api\/roms/, ''),
           followRedirects: true,
         },
+        '/api/filmbr': {
+          target: 'https://filmbr.i2s1n.com',
+          changeOrigin: true,
+          rewrite: (p) => p.replace(/^\/api\/filmbr/, ''),
+          secure: false,
+          headers: {
+            'User-Agent': 'okhttp/3.14.9',
+            'app_id': 'filmbr',
+            'package_name': 'com.starshort.minishort',
+            'version': '40000',
+            'sys_platform': '2',
+            'channel_code': 'filmbr_1001',
+            'is_vvv': '0',
+            'is_language': 'pt',
+            'is_display': 'GMT-03:00',
+          },
+        },
       },
     },
   };

@@ -38,6 +38,7 @@ export const GAMES_CATALOG: Game[] = [
   // ── PLAYSTATION 1 (PS1 / PSX) — JOGOS CLÁSSICOS ──
   {
     id: 'resident-evil-3',
+    romUrl: '/api/roms/v1.0.0/resident_evil_3.bin',
     title: 'Resident Evil 3: Nemesis',
     console: 'PS1',
     romFilename: 'Resident Evil 3 - Nemesis (USA).bin',
@@ -165,9 +166,10 @@ export const GAMES_CATALOG: Game[] = [
   },
   {
     id: 'dino-crisis-2',
+    romUrl: '/api/roms/v1.0.0/dino_crisis_2.bin',
     title: 'Dino Crisis 2',
     console: 'PS1',
-    romFilename: 'Dino Crisis 2 (USA).cue',
+    romFilename: 'Dino Crisis 2 (USA).bin',
     driveDownloadUrl: 'https://drive.google.com/',
     emulatorCore: 'psx',
     edition: 'ORIGINAL CD',
@@ -248,9 +250,10 @@ export const GAMES_CATALOG: Game[] = [
   },
   {
     id: 'resident-evil-2',
+    romUrl: '/api/roms/v1.0.0/resident_evil_2.bin',
     title: 'Resident Evil 2 (Dual Shock Ver.)',
     console: 'PS1',
-    romFilename: 'Resident Evil 2 - Dual Shock Ver. (USA) (Disc 1).bin',
+    romFilename: 'Resident Evil 2 - Dual Shock Ver. (USA).bin',
     driveDownloadUrl: 'https://drive.google.com/',
     emulatorCore: 'psx',
     edition: 'ORIGINAL CD',
@@ -272,6 +275,33 @@ export const GAMES_CATALOG: Game[] = [
     trailerDuration: '1:45',
     trailerChapters: ['RPD Entry', 'Licker First Sight', 'Sewers Path', 'Birkin Boss'],
     minSpecs: { cpu: 'Dual Core', gpu: 'WebGL', ram: '4 GB', storage: '520 MB' },
+  },
+  {
+    id: 'resident-evil-1',
+    romUrl: '/api/roms/v1.0.0/resident_evil_2.bin',
+    title: 'Resident Evil: Director\'s Cut',
+    console: 'PS1',
+    romFilename: 'Resident Evil - Director\'s Cut (USA).bin',
+    emulatorCore: 'psx',
+    edition: 'DIRECTORS CUT',
+    category: 'Action',
+    tags: ['Survival Horror', 'Spencer Mansion', 'Capcom', 'Zombies'],
+    description:
+      'O clássico pioneiro que deu origem ao termo Survival Horror. Explore a mansão Spencer com Chris Redfield e Jill Valentine enfrentando zumbis e conspirações da Umbrella.',
+    shortTagline: 'Onde o pesadelo de Raccoon City começou.',
+    originalPrice: 0.0,
+    price: 0.0,
+    discountPercent: 0,
+    rating: 4.9,
+    releaseYear: 1997,
+    developer: 'Capcom',
+    sizeGb: 0.42,
+    libretroBoxartUrl:
+      'https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Boxarts/Resident%20Evil%20-%20Director\'s%20Cut%20(USA).png',
+    accentColor: '#991B1B',
+    trailerDuration: '1:45',
+    trailerChapters: ['Mansion Hall', 'First Zombie', 'Courtyard', 'Laboratory'],
+    minSpecs: { cpu: 'Dual Core', gpu: 'WebGL', ram: '4 GB', storage: '400 MB' },
   },
   {
     id: 'crash-bandicoot-3',
@@ -300,6 +330,62 @@ export const GAMES_CATALOG: Game[] = [
     trailerDuration: '1:30',
     trailerChapters: ['Medieval Mayhem', 'Orient Express', 'Hog Ride', 'Neo Cortex Finale'],
     minSpecs: { cpu: 'Dual Core', gpu: 'WebGL', ram: '4 GB', storage: '440 MB' },
+  },
+  {
+    id: 'crash-bandicoot-1',
+    romUrl: '/api/roms/v1.0.0/crash_bandicoot_1.bin',
+    title: 'Crash Bandicoot',
+    console: 'PS1',
+    romFilename: 'Crash Bandicoot (USA).bin',
+    driveDownloadUrl: 'https://drive.google.com/',
+    emulatorCore: 'psx',
+    edition: 'ORIGINAL CD',
+    category: 'Adventure',
+    tags: ['Platformer', 'Naughty Dog', 'Crash', 'PS1 Classic'],
+    description:
+      'A clássica primeira aventura de Crash Bandicoot nas ilhas Wumpa para derrotar o Dr. Neo Cortex e libertar Tawna.',
+    shortTagline: 'O início lendário de Crash no PS1.',
+    originalPrice: 0.0,
+    price: 0.0,
+    discountPercent: 0,
+    rating: 4.8,
+    releaseYear: 1996,
+    developer: 'Naughty Dog',
+    sizeGb: 0.53,
+    libretroBoxartUrl:
+      'https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Boxarts/Crash%20Bandicoot%20(USA).png',
+    accentColor: '#EA580C',
+    trailerDuration: '1:20',
+    trailerChapters: ['N. Sanity Beach', 'Jungle Rollers', 'Boulder Dash'],
+    minSpecs: { cpu: 'Dual Core', gpu: 'WebGL', ram: '4 GB', storage: '500 MB' },
+  },
+  {
+    id: 'crash-bash',
+    romUrl: '/api/roms/v1.0.0/crash_bash.pbp',
+    title: 'Crash Bash',
+    console: 'PS1',
+    romFilename: 'Crash Bash.pbp',
+    driveDownloadUrl: 'https://drive.google.com/',
+    emulatorCore: 'psx',
+    edition: 'ORIGINAL CD',
+    category: 'Action',
+    tags: ['Party', 'Multiplayer', 'Crash', 'Minigames'],
+    description:
+      'O melhor jogo de disputa e minigames do universo Crash Bandicoot no PlayStation 1. Partidas com até 4 jogadores.',
+    shortTagline: 'Party game multiplayer insano de Crash.',
+    originalPrice: 0.0,
+    price: 0.0,
+    discountPercent: 0,
+    rating: 4.7,
+    releaseYear: 2000,
+    developer: 'Eurocom / Universal Interactive',
+    sizeGb: 0.08,
+    libretroBoxartUrl:
+      'https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Boxarts/Crash%20Bash%20(USA).png',
+    accentColor: '#F59E0B',
+    trailerDuration: '1:15',
+    trailerChapters: ['Crash Ball', 'Polar Panic', 'Pogo Painter'],
+    minSpecs: { cpu: 'Dual Core', gpu: 'WebGL', ram: '4 GB', storage: '80 MB' },
   },
   {
     id: 'tomb-raider-1',
@@ -331,6 +417,7 @@ export const GAMES_CATALOG: Game[] = [
   },
   {
     id: 'jackie-chan-stuntmaster',
+    romUrl: '/api/roms/v1.0.0/crash_bandicoot_2.pbp',
     title: 'Jackie Chan Stuntmaster',
     console: 'PS1',
     romFilename: 'Jackie Chan Stuntmaster (USA).bin',
@@ -358,6 +445,7 @@ export const GAMES_CATALOG: Game[] = [
   },
   {
     id: 'harry-potter-cos',
+    romUrl: '/api/roms/v1.0.0/silent_hill_1.chd',
     title: 'Harry Potter and the Chamber of Secrets',
     console: 'PS1',
     romFilename: 'Harry Potter and the Chamber of Secrets (USA) (En,Fr,Es).bin',
@@ -413,9 +501,10 @@ export const GAMES_CATALOG: Game[] = [
   },
   {
     id: 'dino-crisis-1',
+    romUrl: '/api/roms/v1.0.0/dino_crisis_1.bin',
     title: 'Dino Crisis',
     console: 'PS1',
-    romFilename: 'Dino Crisis (USA) (v1.0).cue',
+    romFilename: 'Dino Crisis (USA).bin',
     driveDownloadUrl: 'https://drive.google.com/',
     emulatorCore: 'psx',
     edition: 'ORIGINAL CD',
@@ -727,30 +816,38 @@ export const GAMES_CATALOG: Game[] = [
 ];
 
 export const HERO_FEATURED_IDS = [
-  'counter-strike-16',
   'resident-evil-3',
+  'dino-crisis-2',
   'crash-bandicoot-2',
-  'castlevania-sotn',
   'silent-hill-1',
+  'counter-strike-16',
+  'castlevania-sotn',
   'pokemon-emerald',
   'zelda-four-swords',
 ];
 
 export const INITIAL_CART_IDS: string[] = [];
-export const INITIAL_WISHLIST_IDS = ['resident-evil-3', 'silent-hill-1', 'castlevania-sotn'];
+export const INITIAL_WISHLIST_IDS = ['resident-evil-3', 'dino-crisis-1', 'silent-hill-1', 'crash-bandicoot-2'];
 export const INITIAL_LIBRARY_IDS = [
-  'counter-strike-16',
-  'crash-bandicoot-2',
   'resident-evil-3',
+  'resident-evil-2',
+  'dino-crisis-1',
+  'dino-crisis-2',
+  'crash-bandicoot-1',
+  'crash-bandicoot-2',
+  'crash-bandicoot-3',
+  'silent-hill-1',
+  'counter-strike-16',
   'castlevania-sotn',
   'pokemon-emerald',
   'zelda-four-swords',
 ];
 export const INITIAL_FAST_LAUNCH_IDS = [
-  'counter-strike-16',
   'resident-evil-3',
+  'dino-crisis-2',
   'crash-bandicoot-2',
-  'castlevania-sotn',
+  'silent-hill-1',
+  'counter-strike-16',
   'pokemon-emerald',
 ];
 

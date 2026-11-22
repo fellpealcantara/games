@@ -35,7 +35,7 @@ import {
   toggleIdInList,
 } from './utils/storeLogic';
 import { filterStreamingTitles, upsertWatchProgress } from './utils/streamingLogic';
-import { searchStreamingCatalog } from './services/streamingService';
+import { loadFullStreamingCatalog, searchStreamingCatalog } from './services/streamingService';
 import { Sidebar } from './components/Sidebar';
 import { TopBar } from './components/TopBar';
 import { HeroCarousel } from './components/HeroCarousel';
@@ -185,14 +185,31 @@ export default function App() {
   const [downloads, setDownloads] = useState<DownloadItem[]>(INITIAL_DOWNLOADS);
   const [profile, setProfile] = useState<UserProfile>(initial.profile);
 
-  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+  const [selectedGame, setSelectedGame] = useState<Game | null>(() => {
+    try {
+      const gParam = new URLSearchParams(window.location.search).get('game');
+      if (gParam) {
+        return GAMES_CATALOG.find((g) => g.id === gParam) || null;
+      }
+    } catch {}
+    return null;
+  });
   const [trailerGame, setTrailerGame] = useState<Game | null>(null);
-  const [launchingGame, setLaunchingGame] = useState<Game | null>(null);
+  const [launchingGame, setLaunchingGame] = useState<Game | null>(() => {
+    try {
+      const pParam = new URLSearchParams(window.location.search).get('playgame');
+      if (pParam) {
+        return GAMES_CATALOG.find((g) => g.id === pParam) || null;
+      }
+    } catch {}
+    return null;
+  });
   const [cartOpen, setCartOpen] = useState(false);
   const [wishlistOpen, setWishlistOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
   // Streaming State
+  const [streamingCatalog, setStreamingCatalog] = useState<StreamingTitle[]>(() => STREAMING_CATALOG);
   const [streamingNav, setStreamingNav] = useState<StreamingNavSection>('home');
   const [streamingTypeFilter, setStreamingTypeFilter] = useState<StreamingTypeFilter>('All');
   const [streamingSearch, setStreamingSearch] = useState(() => {
@@ -277,6 +294,25 @@ export default function App() {
         }
       }
     } catch {}
+  }, []);
+
+  // Fetch full live & cloud streaming catalog on startup
+  useEffect(() => {
+    let isCancelled = false;
+    async function initCatalog() {
+      try {
+        const fullCatalog = await loadFullStreamingCatalog();
+        if (!isCancelled && fullCatalog && fullCatalog.length > 0) {
+          setStreamingCatalog(fullCatalog);
+        }
+      } catch (err) {
+        console.warn('Failed to load streaming catalog:', err);
+      }
+    }
+    initCatalog();
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
   // Live search debounced
@@ -418,7 +454,7 @@ export default function App() {
   );
 
   const filteredStreamingTitles = useMemo(() => {
-    const localFiltered = filterStreamingTitles(STREAMING_CATALOG, {
+    const localFiltered = filterStreamingTitles(streamingCatalog, {
       query: streamingSearch,
       typeFilter: streamingTypeFilter,
       navSection: streamingNav,
@@ -435,6 +471,7 @@ export default function App() {
 
     return localFiltered;
   }, [
+    streamingCatalog,
     streamingSearch,
     streamingSearchResults,
     streamingTypeFilter,
@@ -683,7 +720,7 @@ export default function App() {
 
               <main className="mt-5 flex-1 overflow-y-auto pr-1 store-scroll">
                 <StreamingHomeView
-                  allTitles={STREAMING_CATALOG}
+                  allTitles={streamingCatalog}
                   filteredTitles={filteredStreamingTitles}
                   navSection={streamingNav}
                   typeFilter={streamingTypeFilter}
@@ -1015,7 +1052,7 @@ export default function App() {
       <AiProfileModal
         open={aiProfileOpen}
         profile={profile}
-        catalog={STREAMING_CATALOG}
+        catalog={streamingCatalog}
         watchProgress={watchProgress}
         myListIds={myListIds}
         ownedCount={libraryIds.length}
@@ -1057,7 +1094,7 @@ export default function App() {
         onToggleDownload={handleToggleStreamDownload}
         relatedTitles={
           selectedStreamTitle && !selectedStreamTitle.isSeries
-            ? STREAMING_CATALOG.filter(
+            ? streamingCatalog.filter(
                 (t) => !t.isSeries && t.id !== selectedStreamTitle.id
               ).slice(0, 8)
             : []

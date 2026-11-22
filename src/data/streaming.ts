@@ -24,10 +24,10 @@ export const HOT_SEARCH_KEYWORDS: string[] = [
 
 export const HERO_FEATURED_STREAMING_IDS: string[] = [
   "stream-1644785443",
-  "stream-undefined",
-  "stream-undefined",
-  "stream-undefined",
-  "stream-undefined"
+  "stream-276623528",
+  "stream-1337351760",
+  "stream-1687961294",
+  "stream-135199057"
 ];
 
 export const STREAM_HOME_SECTIONS: StreamSection[] = [

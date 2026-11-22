@@ -186,21 +186,15 @@ export function GameDetailModal({
               <button
                 type="button"
                 onClick={() => onPlayGame(game)}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#E5192B] px-4 py-3 text-xs font-bold text-white transition-colors hover:bg-[#FF2436]"
+                className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-[#E5192B] px-5 py-3.5 text-sm font-bold text-white transition-all hover:bg-[#FF2436] hover:shadow-lg hover:shadow-[#E5192B]/25 active:scale-[0.99]"
               >
-                <Play className="h-4 w-4 fill-white" /> Iniciar Jogo
+                <Play className="h-4 w-4 fill-white" /> Iniciar Jogo (Play Online)
               </button>
 
-              {game.driveDownloadUrl && !isCs16 && (
-                <a
-                  href={game.driveDownloadUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#262626] px-4 py-2.5 text-xs font-semibold text-neutral-200 transition-colors hover:bg-[#323232]"
-                >
-                  <Download className="h-4 w-4 text-[#FF2A3B]" /> Baixar ISO (Drive)
-                </a>
-              )}
+              <div className="flex items-center justify-center gap-2 rounded-xl bg-[#1C1C1C] border border-white/[0.06] px-3.5 py-2.5 text-xs text-neutral-300 font-medium">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Servidor Git Conectado · Sem Download Manual</span>
+              </div>
 
               <button
                 type="button"

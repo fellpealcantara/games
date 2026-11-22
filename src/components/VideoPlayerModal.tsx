@@ -29,7 +29,7 @@ import {
   getNextEpisode,
   shouldShowUpNextPrompt,
 } from '../utils/streamingLogic';
-import { resolveStreamViaEngine } from '../services/streamingService';
+import { fetchVodInfo, resolveStreamViaEngine } from '../services/streamingService';
 
 interface VideoPlayerModalProps {
   title: StreamingTitle | null;
@@ -147,7 +147,7 @@ export function VideoPlayerModal({
 
     async function loadStream() {
       const candidate = activeEpisode?.streamUrl || title?.streamUrl;
-      if (candidate && !activeEpisode?.isP2p) {
+      if (candidate && !activeEpisode?.isP2p && candidate.startsWith('http')) {
         if (!isCancelled) {
           setActiveStreamUrl(candidate);
           setIsLoadingStream(false);
@@ -156,6 +156,25 @@ export function VideoPlayerModal({
       }
 
       try {
+        // Priority 1: Fetch direct stream from FilmBR backend (/api/vod/info_new)
+        const audioCode = selectedAudio === 'legendado' ? 2 : 1;
+        const vodInfo = await fetchVodInfo(title?.id || '', audioCode);
+        if (!isCancelled && vodInfo) {
+          let chosenVodStream = vodInfo.streamUrl;
+          if (activeEpisode && vodInfo.episodes.length > 0) {
+            const matchedEp = vodInfo.episodes.find((e) => e.number === activeEpisode.number);
+            if (matchedEp?.streamUrl) {
+              chosenVodStream = matchedEp.streamUrl;
+            }
+          }
+          if (chosenVodStream && chosenVodStream.startsWith('http')) {
+            setActiveStreamUrl(chosenVodStream);
+            setIsLoadingStream(false);
+            return;
+          }
+        }
+
+        // Priority 2: Fallback to engine resolver
         const isTv = Boolean(title?.isSeries || (title?.episodes && title.episodes.length > 1));
         const seasonNum = activeEpisode?.season ?? 1;
         const episodeNum = activeEpisode?.number ?? 1;
@@ -165,7 +184,7 @@ export function VideoPlayerModal({
         const seed = Math.abs(titleIdStr.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0));
         const guaranteedBackup = RELIABLE_BACKUP_STREAMS[seed % RELIABLE_BACKUP_STREAMS.length];
 
-        // 2.5s timeout race to prevent slow 15s freeze
+        // 2.5s timeout race to prevent slow freeze
         const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2500));
         const resolved = await Promise.race([
           resolveStreamViaEngine(mediaId, isTv, seasonNum, episodeNum),
