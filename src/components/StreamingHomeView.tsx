@@ -350,11 +350,19 @@ export function StreamingHomeView({
                         referrerPolicy="no-referrer"
                         className="h-full w-full object-cover object-center"
                       />
-                      <div className="absolute inset-0 bg-black/45 opacity-0 transition-opacity duration-150 group-hover:opacity-100 flex items-center justify-center">
-                        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#E5192B] text-white">
-                          <Play className="ml-0.5 h-5 w-5 fill-white" />
-                        </span>
-                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onPlayTitle(title, undefined);
+                      }}
+                      aria-label={`Assistir ${title.title}`}
+                      className="absolute inset-0 bg-black/45 opacity-0 transition-opacity duration-150 group-hover:opacity-100 flex items-center justify-center cursor-pointer"
+                    >
+                      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#E5192B] text-white shadow-xl hover:scale-110 transition-transform">
+                        <Play className="ml-0.5 h-5 w-5 fill-white" />
+                      </span>
                     </button>
                   </div>
 
@@ -493,11 +501,19 @@ export function StreamingHomeView({
                         referrerPolicy="no-referrer"
                         className="h-full w-full object-cover object-center"
                       />
-                      <div className="absolute inset-0 bg-black/45 opacity-0 transition-opacity duration-150 group-hover:opacity-100 flex items-center justify-center">
-                        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#E5192B] text-white">
-                          <Play className="ml-0.5 h-5 w-5 fill-white" />
-                        </span>
-                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onPlayTitle(title, undefined);
+                      }}
+                      aria-label={`Assistir ${title.title}`}
+                      className="absolute inset-0 bg-black/45 opacity-0 transition-opacity duration-150 group-hover:opacity-100 flex items-center justify-center cursor-pointer"
+                    >
+                      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#E5192B] text-white shadow-xl hover:scale-110 transition-transform">
+                        <Play className="ml-0.5 h-5 w-5 fill-white" />
+                      </span>
                     </button>
                   </div>
 
@@ -816,11 +832,19 @@ export function StreamingHomeView({
                           loading="lazy"
                           className="h-full w-full object-cover object-center"
                         />
-                        <div className="absolute inset-0 bg-black/45 opacity-0 transition-opacity duration-150 group-hover:opacity-100 flex items-center justify-center">
-                          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#E5192B] text-white">
-                            <Play className="ml-0.5 h-5 w-5 fill-white" />
-                          </span>
-                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onPlayTitle(title, undefined);
+                        }}
+                        aria-label={`Assistir ${title.title}`}
+                        className="absolute inset-0 bg-black/45 opacity-0 transition-opacity duration-150 group-hover:opacity-100 flex items-center justify-center cursor-pointer"
+                      >
+                        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#E5192B] text-white shadow-xl hover:scale-110 transition-transform">
+                          <Play className="ml-0.5 h-5 w-5 fill-white" />
+                        </span>
                       </button>
                     </div>
 

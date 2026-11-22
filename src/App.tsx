@@ -48,6 +48,8 @@ import { CartDrawer } from './components/CartDrawer';
 import { WishlistDrawer } from './components/WishlistDrawer';
 import { ProfileModal } from './components/ProfileModal';
 import { EmulatorModal } from './components/EmulatorModal';
+import { AuthModal } from './components/AuthModal';
+import { AiProfileModal } from './components/AiProfileModal';
 import { StreamingTopBar } from './components/StreamingTopBar';
 import { StreamingHomeView } from './components/StreamingHomeView';
 import { StreamingDetailModal } from './components/StreamingDetailModal';
@@ -238,6 +240,32 @@ export default function App() {
   const [streamUtilityModal, setStreamUtilityModal] = useState<'settings' | 'help' | null>(null);
   const [streamingSearchResults, setStreamingSearchResults] = useState<StreamingTitle[]>([]);
   const [isSearchingStreaming, setIsSearchingStreaming] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [aiProfileOpen, setAiProfileOpen] = useState(false);
+
+  // Restore authenticated session from localStorage
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('play_auth_user_v1');
+      if (raw) {
+        const u = JSON.parse(raw);
+        if (u?.email) {
+          setProfile((prev) => ({
+            ...prev,
+            email: u.email,
+            username: u.username || prev.username,
+            statusText: u.statusText || prev.statusText,
+          }));
+          if (Array.isArray(u.streamingListIds) && u.streamingListIds.length > 0) {
+            setMyListIds(u.streamingListIds);
+          }
+          if (Array.isArray(u.streamingLikedIds) && u.streamingLikedIds.length > 0) {
+            setLikedIds(u.streamingLikedIds);
+          }
+        }
+      }
+    } catch {}
+  }, []);
 
   // Live search debounced
   useEffect(() => {
@@ -636,7 +664,8 @@ export default function App() {
                   }
                 }}
                 profile={profile}
-                onOpenProfile={() => setProfileOpen(true)}
+                onOpenProfile={() => setAiProfileOpen(true)}
+                onOpenAuth={() => setAuthOpen(true)}
                 onOpenMobileMenu={() => setMobileSidebarOpen(true)}
               />
 
@@ -950,6 +979,48 @@ export default function App() {
             statusText: updates.statusText,
           }))
         }
+      />
+
+      <AuthModal
+        open={authOpen}
+        onClose={() => setAuthOpen(false)}
+        onLoginSuccess={(u) => {
+          setProfile((prev) => ({
+            ...prev,
+            email: u.email,
+            username: u.username,
+            statusText: u.statusText,
+          }));
+          if (Array.isArray(u.streamingListIds) && u.streamingListIds.length > 0) {
+            setMyListIds(u.streamingListIds);
+          }
+          if (Array.isArray(u.streamingLikedIds) && u.streamingLikedIds.length > 0) {
+            setLikedIds(u.streamingLikedIds);
+          }
+        }}
+      />
+
+      <AiProfileModal
+        open={aiProfileOpen}
+        profile={profile}
+        catalog={STREAMING_CATALOG}
+        watchProgress={watchProgress}
+        myListIds={myListIds}
+        onClose={() => setAiProfileOpen(false)}
+        onOpenLogin={() => setAuthOpen(true)}
+        onSaveProfile={(updates) =>
+          setProfile((prev) => ({
+            ...prev,
+            username: updates.username,
+            statusText: updates.statusText,
+          }))
+        }
+        onLogout={() => {
+          localStorage.removeItem('play_auth_user_v1');
+          setProfile(INITIAL_USER_PROFILE);
+          setAiProfileOpen(false);
+          setAuthOpen(true);
+        }}
       />
 
       <EmulatorModal

@@ -2,8 +2,8 @@
   "framework": "vite",
   "rewrites": [
     {
-      "source": "/api/roms/:path*",
-      "destination": "https://github.com/fellpealcantara/games/releases/download/:path*"
+      "source": "/api/roms/(.*)",
+      "destination": "/api/rom?file=$1"
     },
     {
       "source": "/(.*)",

@@ -758,7 +758,8 @@ export const INITIAL_DOWNLOADS: DownloadItem[] = [];
 
 export const INITIAL_USER_PROFILE: UserProfile = {
   username: 'PlayerOne',
-  statusText: 'Pronto para jogar',
+  email: 'playerone@play.app',
+  statusText: 'Pronto para jogar e assistir',
   level: 42,
   avatarImage: avatarWinotikk,
   hoursPlayed: 320,

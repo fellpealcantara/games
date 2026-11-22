@@ -89,6 +89,7 @@ export interface StoreFilter {
 
 export interface UserProfile {
   username: string;
+  email?: string;
   statusText: string;
   level: number;
   avatarImage: string;

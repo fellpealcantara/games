@@ -11,6 +11,7 @@ interface StreamingTopBarProps {
   onSelectTypeFilter: (filter: StreamingTypeFilter) => void;
   profile: UserProfile;
   onOpenProfile: () => void;
+  onOpenAuth?: () => void;
   onOpenMobileMenu: () => void;
 }
 
@@ -24,6 +25,7 @@ export function StreamingTopBar({
   onSelectTypeFilter,
   profile,
   onOpenProfile,
+  onOpenAuth,
   onOpenMobileMenu,
 }: StreamingTopBarProps) {
   const [notifOpen, setNotifOpen] = useState(false);

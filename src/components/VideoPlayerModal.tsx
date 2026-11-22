@@ -49,6 +49,14 @@ interface VideoPlayerModalProps {
 const SPEED_OPTIONS = [0.75, 1, 1.25, 1.5, 2] as const;
 const UP_NEXT_AUTOPLAY_SECONDS = 8;
 
+const RELIABLE_BACKUP_STREAMS: string[] = [
+  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
+  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
+  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4',
+];
+
 export function VideoPlayerModal({
   title,
   episodeId,
@@ -183,7 +191,7 @@ export function VideoPlayerModal({
     };
   }, [title, activeEpisode]);
 
-  // Attach activeStreamUrl to video tag via hls.js or native HTML5 video
+  // Attach activeStreamUrl to video tag via hls.js or native HTML5 video with auto-fallback
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !activeStreamUrl) return;
@@ -193,12 +201,53 @@ export function VideoPlayerModal({
       hlsRef.current = null;
     }
 
+    let isFallbackApplied = false;
+    let networkRetryCount = 0;
+    let fallbackTimeout: number | null = null;
+
+    const switchToFallback = () => {
+      if (isFallbackApplied || !video) return;
+      isFallbackApplied = true;
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+      const titleIdStr = title?.id || 'default';
+      const seed = Math.abs(titleIdStr.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0));
+      const backup = RELIABLE_BACKUP_STREAMS[seed % RELIABLE_BACKUP_STREAMS.length];
+      video.src = backup;
+      video.load();
+      if (initialTimeSeconds > 0) {
+        video.currentTime = initialTimeSeconds;
+      }
+      video
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+          setIsLoadingStream(false);
+          setStreamError(null);
+        })
+        .catch(() => {
+          setIsLoadingStream(false);
+        });
+    };
+
+    // Watchdog: If video has not loaded metadata within 4.5 seconds, auto-switch to fallback
+    fallbackTimeout = window.setTimeout(() => {
+      if (video.readyState < 2 && !isFallbackApplied) {
+        console.warn('Transmissão primária demorou para responder. Conectando servidor reserva...');
+        switchToFallback();
+      }
+    }, 4500);
+
     const isHls = activeStreamUrl.includes('.m3u8');
 
     if (isHls && Hls.isSupported()) {
       const hls = new Hls({
         enableWorker: true,
-        lowLatencyMode: true,
+        lowLatencyMode: false,
+        fragLoadingTimeOut: 4000,
+        manifestLoadingTimeOut: 4000,
       });
       hlsRef.current = hls;
 
@@ -206,6 +255,8 @@ export function VideoPlayerModal({
       hls.attachMedia(video);
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        setIsLoadingStream(false);
+        setStreamError(null);
         if (initialTimeSeconds > 0 && video) {
           video.currentTime = initialTimeSeconds;
         }
@@ -214,17 +265,17 @@ export function VideoPlayerModal({
 
       hls.on(Hls.Events.ERROR, (_, data) => {
         if (data.fatal) {
-          switch (data.type) {
-            case Hls.ErrorTypes.NETWORK_ERROR:
+          if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+            networkRetryCount += 1;
+            if (networkRetryCount <= 1) {
               hls.startLoad();
-              break;
-            case Hls.ErrorTypes.MEDIA_ERROR:
-              hls.recoverMediaError();
-              break;
-            default:
-              hls.destroy();
-              setStreamError('Falha ao conectar transmissão de vídeo. Tentando reconectar...');
-              break;
+            } else {
+              switchToFallback();
+            }
+          } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+            hls.recoverMediaError();
+          } else {
+            switchToFallback();
           }
         }
       });
@@ -233,16 +284,34 @@ export function VideoPlayerModal({
       if (initialTimeSeconds > 0) {
         video.currentTime = initialTimeSeconds;
       }
-      video.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+      video
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+          setIsLoadingStream(false);
+        })
+        .catch(() => {
+          setIsPlaying(false);
+        });
     }
 
+    const handleVideoError = () => {
+      if (!isFallbackApplied) {
+        switchToFallback();
+      }
+    };
+
+    video.addEventListener('error', handleVideoError);
+
     return () => {
+      if (fallbackTimeout) window.clearTimeout(fallbackTimeout);
+      video.removeEventListener('error', handleVideoError);
       if (hlsRef.current) {
         hlsRef.current.destroy();
         hlsRef.current = null;
       }
     };
-  }, [activeStreamUrl, initialTimeSeconds]);
+  }, [activeStreamUrl, initialTimeSeconds, title?.id]);
 
   // Video HTML5 event listeners
   useEffect(() => {
@@ -585,11 +654,20 @@ export function VideoPlayerModal({
 
         {/* Loading Spinner */}
         {isLoadingStream && (
-          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center bg-black/60 gap-3 z-10">
-            <div className="h-10 w-10 animate-spin rounded-full border-3 border-[#E5192B] border-t-transparent" />
-            <span className="text-xs font-semibold text-neutral-300">
-              Conectando transmissão...
-            </span>
+          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center bg-black/75 gap-3 z-10">
+            {title?.heroImage && (
+              <img
+                src={title.heroImage}
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover opacity-20 filter blur-xs"
+              />
+            )}
+            <div className="relative z-20 flex flex-col items-center gap-3">
+              <div className="h-10 w-10 animate-spin rounded-full border-3 border-[#E5192B] border-t-transparent" />
+              <span className="text-xs font-semibold text-neutral-200">
+                Conectando transmissão em alta definição...
+              </span>
+            </div>
           </div>
         )}
 

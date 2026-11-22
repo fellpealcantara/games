@@ -155,6 +155,91 @@ export class NeonSaveManager {
     const local = getLocalSaves();
     return Object.values(local).filter((s) => s.userId === userId);
   }
+
+  public async loginOrRegisterUser(email: string, username?: string): Promise<{
+    id: string;
+    username: string;
+    email: string;
+    statusText: string;
+    streamingListIds: string[];
+    streamingLikedIds: string[];
+  }> {
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanName = (username || cleanEmail.split('@')[0]).trim();
+
+    if (this.isConfigured) {
+      try {
+        const { neon } = await import('@neondatabase/serverless');
+        const sql = neon(this.connectionString);
+        const rows = await sql`
+          SELECT id, username, email, status_text, streaming_list_ids, streaming_liked_ids
+          FROM play_users
+          WHERE id = ${cleanEmail} OR email = ${cleanEmail}
+          LIMIT 1;
+        `;
+        if (rows && rows.length > 0) {
+          const r = rows[0];
+          return {
+            id: r.id,
+            username: r.username || cleanName,
+            email: r.email || cleanEmail,
+            statusText: r.status_text || 'Conectado via Play Entertainment',
+            streamingListIds: Array.isArray(r.streaming_list_ids) ? r.streaming_list_ids : [],
+            streamingLikedIds: Array.isArray(r.streaming_liked_ids) ? r.streaming_liked_ids : [],
+          };
+        } else {
+          await sql`
+            INSERT INTO play_users (id, username, email, status_text, streaming_list_ids, streaming_liked_ids, created_at, updated_at)
+            VALUES (${cleanEmail}, ${cleanName}, ${cleanEmail}, 'Conectado via Play Entertainment', '[]'::jsonb, '[]'::jsonb, NOW(), NOW())
+            ON CONFLICT (id) DO UPDATE SET updated_at = NOW();
+          `;
+          return {
+            id: cleanEmail,
+            username: cleanName,
+            email: cleanEmail,
+            statusText: 'Conectado via Play Entertainment',
+            streamingListIds: [],
+            streamingLikedIds: [],
+          };
+        }
+      } catch (err) {
+        console.warn('Erro ao autenticar no Neon, usando persistência local:', err);
+      }
+    }
+
+    return {
+      id: cleanEmail,
+      username: cleanName,
+      email: cleanEmail,
+      statusText: 'Conectado via Play Entertainment',
+      streamingListIds: [],
+      streamingLikedIds: [],
+    };
+  }
+
+  public async syncUserStreamingData(
+    userId: string,
+    listIds: string[],
+    likedIds: string[]
+  ): Promise<boolean> {
+    if (this.isConfigured) {
+      try {
+        const { neon } = await import('@neondatabase/serverless');
+        const sql = neon(this.connectionString);
+        await sql`
+          UPDATE play_users
+          SET streaming_list_ids = ${JSON.stringify(listIds)}::jsonb,
+              streaming_liked_ids = ${JSON.stringify(likedIds)}::jsonb,
+              updated_at = NOW()
+          WHERE id = ${userId} OR email = ${userId};
+        `;
+        return true;
+      } catch (err) {
+        console.warn('Falha ao sincronizar listas no Neon:', err);
+      }
+    }
+    return true;
+  }
 }
 
 export const neonSaveManager = new NeonSaveManager();
