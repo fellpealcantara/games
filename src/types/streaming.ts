@@ -74,6 +74,8 @@ export interface StreamingTitle {
   seasons?: StreamingSeason[];
   isSeries?: boolean;
   tmdbId?: number;
+  originPlatform?: string;
+  chronologicalOrder?: number;
 }
 
 export interface WatchProgress {
@@ -93,6 +95,10 @@ export interface StreamingSettings {
 export interface StreamSection {
   id: string;
   title: string;
+  subtitle?: string;
+  category?: 'continue' | 'watchlist' | 'releases' | 'ai' | 'universe' | 'streaming' | 'standard';
+  isAiRecommended?: boolean;
+  aiReason?: string;
   items: StreamingTitle[];
 }
 

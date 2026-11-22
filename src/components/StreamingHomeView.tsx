@@ -25,6 +25,7 @@ import type {
 import { HOT_SEARCH_KEYWORDS, STREAM_HOME_SECTIONS } from '../data/streaming';
 import { getWatchProgressPercent } from '../utils/streamingLogic';
 import { resolveMediaImageUrl } from '../services/streamingService';
+import { buildDynamicHomeSections } from '../utils/streamingCurator';
 
 interface StreamingHomeViewProps {
   allTitles: StreamingTitle[];
@@ -451,18 +452,16 @@ export function StreamingHomeView({
     );
   }
 
-  // Structured Sections
-  const continueWatchingItems = watchProgress
-    .map((prog) => {
-      const title = allTitles.find((t) => t.id === prog.titleId);
-      if (!title) return null;
-      const episode = prog.episodeId
-        ? title.episodes?.find((e) => e.id === prog.episodeId)
-        : undefined;
-      return { title, prog, episode };
-    })
-    .filter((item): item is NonNullable<typeof item> => Boolean(item))
-    .slice(0, 16);
+  // Dynamic Curated Sections Pipeline (Curated Intelligence Architecture)
+  const homeSections = useMemo(() => {
+    return buildDynamicHomeSections({
+      baseSections: STREAM_HOME_SECTIONS,
+      catalog: allTitles,
+      watchProgress,
+      myListIds,
+      typeFilter,
+    });
+  }, [allTitles, watchProgress, myListIds, typeFilter]);
 
   const isHeroInList = myListIds.includes(activeHero.id);
   const isHeroLiked = likedIds.includes(activeHero.id);
@@ -648,108 +647,66 @@ export function StreamingHomeView({
         </div>
       </section>
 
-      {/* 1. Continue Watching Row */}
-      {continueWatchingItems.length > 0 && (
-        <section aria-label="Continuar Assistindo">
-          <div className="mb-3.5 flex items-center justify-between">
-            <h2 className="text-[17px] font-semibold tracking-[-0.01em] text-white">
-              Continuar Assistindo
-            </h2>
-          </div>
-
-          <div
-            data-testid="continue-watching-grid"
-            className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 min-[2100px]:grid-cols-8 min-[2500px]:grid-cols-9 min-[3000px]:grid-cols-11 min-[3400px]:grid-cols-12"
-          >
-            {continueWatchingItems.map(({ title, prog, episode }) => {
-              const pct = getWatchProgressPercent(
-                prog.currentTimeSeconds,
-                prog.durationSeconds
-              );
-              const cardUrl = resolveMediaImageUrl(title.cardImage);
-
-              return (
-                <article key={title.id} className="group flex flex-col">
-                  <div className="relative overflow-hidden rounded-2xl bg-[#161616] border border-white/[0.06]">
-                    <button
-                      type="button"
-                      onClick={() => onPlayTitle(title, prog.episodeId)}
-                      aria-label={`Continuar ${title.title}`}
-                      className="block aspect-[2/3] w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5192B]"
-                    >
-                      <img
-                        src={cardUrl}
-                        alt={title.title}
-                        referrerPolicy="no-referrer"
-                        className="h-full w-full object-cover object-center"
-                      />
-                      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/45 transition-colors flex flex-col justify-between p-3">
-                        <div className="flex justify-end">
-                          <span className="rounded-md bg-black/80 px-2 py-0.5 text-[10px] font-semibold text-neutral-100 tabular-nums">
-                            {episode ? `S${episode.season}:E${episode.number}` : title.type}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-center opacity-0 transition-opacity duration-150 group-hover:opacity-100">
-                          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#E5192B] text-white">
-                            <Play className="ml-0.5 h-5 w-5 fill-white" />
-                          </span>
-                        </div>
-                        <div className="h-4" aria-hidden="true" />
-                      </div>
-                    </button>
-                  </div>
-
-                  {pct > 0 && (
-                    <div className="mt-2 h-[3px] w-full overflow-hidden rounded-full bg-[#2A2A2A]">
-                      <div
-                        className="h-full rounded-full bg-[#E5192B]"
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                  )}
-
-                  <div className="mt-2.5 min-w-0">
-                    <button
-                      type="button"
-                      onClick={() => onSelectTitle(title)}
-                      className="block w-full truncate text-left text-[13.5px] font-semibold text-white transition-colors hover:text-[#FF2A3B]"
-                    >
-                      {title.title}
-                    </button>
-                    <div className="mt-0.5 truncate text-[11px] text-neutral-400">
-                      {episode ? `S${episode.season}:E${episode.number} · ${episode.title}` : `${title.type} · ${title.durationLabel}`}
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      {/* Official Structured Sections (Directly from Channel modules) */}
-      {STREAM_HOME_SECTIONS.map((section, idx) => {
+      {/* Curated Sections (Curated Intelligence Architecture) */}
+      {homeSections.map((section, idx) => {
         const displayItems = section.items.slice(0, 18);
 
+        const getCategoryBadge = (sec: StreamSection) => {
+          switch (sec.category) {
+            case 'continue':
+              return 'HISTÓRICO';
+            case 'watchlist':
+              return 'MINHA LISTA';
+            case 'releases':
+              return 'LANÇAMENTO 2026';
+            case 'universe':
+              return 'UNIVERSO CANÔNICO';
+            case 'streaming':
+              return 'ORIGINAL';
+            case 'ai':
+              return 'CURADORIA';
+            default:
+              return null;
+          }
+        };
+
+        const badgeLabel = getCategoryBadge(section);
+
         return (
-          <section key={`${section.title}-${idx}`} aria-label={section.title} className="space-y-4">
-            <div className="flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => setSelectedSection(section)}
-                className="group flex items-center gap-2 text-left focus:outline-none"
-              >
-                <Film className="h-4 w-4 text-[#FF2A3B]" aria-hidden="true" />
-                <h2 className="text-[17px] font-semibold tracking-[-0.01em] text-white group-hover:text-[#FF2A3B] transition-colors">
-                  {section.title}
-                </h2>
-                <ChevronRight className="h-4 w-4 text-neutral-500 group-hover:text-white transition-colors" />
-              </button>
+          <section
+            key={`${section.id || section.title}-${idx}`}
+            aria-label={section.title}
+            className="space-y-3.5"
+          >
+            <div className="flex flex-wrap items-end justify-between gap-2">
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedSection(section)}
+                  className="group flex items-center gap-2.5 text-left focus:outline-none"
+                >
+                  <Film className="h-4 w-4 text-[#FF2A3B]" aria-hidden="true" />
+                  <h2 className="text-[17px] font-semibold tracking-[-0.01em] text-white group-hover:text-[#FF2A3B] transition-colors">
+                    {section.title}
+                  </h2>
+                  {badgeLabel && (
+                    <span className="rounded-full bg-white/[0.08] px-2.5 py-0.5 text-[10px] font-bold tracking-wider text-neutral-300">
+                      {badgeLabel}
+                    </span>
+                  )}
+                  <ChevronRight className="h-4 w-4 text-neutral-500 group-hover:text-white transition-colors" />
+                </button>
+                {section.subtitle && (
+                  <p className="mt-1 text-xs text-neutral-400">
+                    {section.subtitle}
+                  </p>
+                )}
+              </div>
 
               <button
                 type="button"
                 onClick={() => setSelectedSection(section)}
-                className="text-xs font-semibold text-[#FF2A3B] hover:text-[#FF4D5C] transition-colors"
+                className="text-xs font-semibold text-[#FF2A3B] hover:text-[#FF4D5C] transition-colors pb-0.5"
               >
                 Ver todos ({section.items.length})
               </button>
@@ -758,6 +715,11 @@ export function StreamingHomeView({
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 min-[2100px]:grid-cols-8 min-[2500px]:grid-cols-9 min-[3000px]:grid-cols-11 min-[3400px]:grid-cols-12">
               {displayItems.map((title) => {
                 const cardUrl = resolveMediaImageUrl(title.cardImage);
+                const prog = progressByTitleId.get(title.id);
+                const pct = prog
+                  ? getWatchProgressPercent(prog.currentTimeSeconds, prog.durationSeconds)
+                  : 0;
+
                 return (
                   <article key={title.id} className="group flex flex-col select-none">
                     <div className="relative overflow-hidden rounded-2xl bg-[#161616] border border-white/[0.06]">
@@ -781,6 +743,15 @@ export function StreamingHomeView({
                         </div>
                       </button>
                     </div>
+
+                    {pct > 0 && (
+                      <div className="mt-2 h-[3px] w-full overflow-hidden rounded-full bg-[#2A2A2A]">
+                        <div
+                          className="h-full rounded-full bg-[#E5192B]"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                    )}
 
                     <div className="mt-2.5 min-w-0">
                       <button
