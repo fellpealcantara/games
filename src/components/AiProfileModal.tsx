@@ -24,6 +24,7 @@ interface AiProfileModalProps {
   catalog: StreamingTitle[];
   watchProgress: WatchProgress[];
   myListIds: string[];
+  ownedCount?: number;
   onClose: () => void;
   onOpenLogin: () => void;
   onSaveProfile: (updates: Pick<UserProfile, 'username' | 'statusText'>) => void;
@@ -36,6 +37,7 @@ export function AiProfileModal({
   catalog,
   watchProgress,
   myListIds,
+  ownedCount = 6,
   onClose,
   onOpenLogin,
   onSaveProfile,
@@ -347,7 +349,7 @@ export function AiProfileModal({
             </div>
           )}
 
-          <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3 border-t border-white/[0.06] pt-4 text-center">
+          <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 border-t border-white/[0.06] pt-4 text-center">
             <div className="rounded-xl bg-[#1C1C1C] p-2.5">
               <div className="text-[10px] font-semibold text-neutral-400 uppercase">Minha Lista</div>
               <div className="text-lg font-bold text-white tabular-nums">{myListIds.length}</div>
@@ -356,7 +358,11 @@ export function AiProfileModal({
               <div className="text-[10px] font-semibold text-neutral-400 uppercase">Em Andamento</div>
               <div className="text-lg font-bold text-white tabular-nums">{watchProgress.length}</div>
             </div>
-            <div className="rounded-xl bg-[#1C1C1C] p-2.5 col-span-2 sm:col-span-1">
+            <div className="rounded-xl bg-[#1C1C1C] p-2.5">
+              <div className="text-[10px] font-semibold text-neutral-400 uppercase">Jogos Salvos</div>
+              <div className="text-lg font-bold text-white tabular-nums">{ownedCount}</div>
+            </div>
+            <div className="rounded-xl bg-[#1C1C1C] p-2.5">
               <div className="text-[10px] font-semibold text-neutral-400 uppercase">Nível da Conta</div>
               <div className="text-lg font-bold text-white tabular-nums">{profile.level}</div>
             </div>

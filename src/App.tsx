@@ -240,8 +240,20 @@ export default function App() {
   const [streamUtilityModal, setStreamUtilityModal] = useState<'settings' | 'help' | null>(null);
   const [streamingSearchResults, setStreamingSearchResults] = useState<StreamingTitle[]>([]);
   const [isSearchingStreaming, setIsSearchingStreaming] = useState(false);
-  const [authOpen, setAuthOpen] = useState(false);
-  const [aiProfileOpen, setAiProfileOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(() => {
+    try {
+      return new URLSearchParams(window.location.search).get('auth') === 'true';
+    } catch {
+      return false;
+    }
+  });
+  const [aiProfileOpen, setAiProfileOpen] = useState(() => {
+    try {
+      return new URLSearchParams(window.location.search).get('profile') === 'true';
+    } catch {
+      return false;
+    }
+  });
 
   // Restore authenticated session from localStorage
   useEffect(() => {
@@ -707,7 +719,7 @@ export default function App() {
                 profile={profile}
                 onOpenWishlist={() => setWishlistOpen(true)}
                 onOpenCart={() => setCartOpen(true)}
-                onOpenProfile={() => setProfileOpen(true)}
+                onOpenProfile={() => setAiProfileOpen(true)}
                 onOpenMobileMenu={() => setMobileSidebarOpen(true)}
               />
 
@@ -1006,6 +1018,7 @@ export default function App() {
         catalog={STREAMING_CATALOG}
         watchProgress={watchProgress}
         myListIds={myListIds}
+        ownedCount={libraryIds.length}
         onClose={() => setAiProfileOpen(false)}
         onOpenLogin={() => setAuthOpen(true)}
         onSaveProfile={(updates) =>

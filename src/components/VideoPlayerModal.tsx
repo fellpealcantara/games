@@ -161,24 +161,34 @@ export function VideoPlayerModal({
         const episodeNum = activeEpisode?.number ?? 1;
 
         const mediaId = title?.tmdbId || 550;
-        const resolved = await resolveStreamViaEngine(mediaId, isTv, seasonNum, episodeNum);
+        const titleIdStr = title?.id || 'default';
+        const seed = Math.abs(titleIdStr.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0));
+        const guaranteedBackup = RELIABLE_BACKUP_STREAMS[seed % RELIABLE_BACKUP_STREAMS.length];
+
+        // 2.5s timeout race to prevent slow 15s freeze
+        const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2500));
+        const resolved = await Promise.race([
+          resolveStreamViaEngine(mediaId, isTv, seasonNum, episodeNum),
+          timeoutPromise,
+        ]);
 
         if (!isCancelled) {
-          if (resolved) {
+          if (resolved && !resolved.includes('vercetti.org')) {
             setActiveStreamUrl(resolved);
-            setIsLoadingStream(false);
-          } else if (candidate) {
+          } else if (candidate && candidate.startsWith('http')) {
             setActiveStreamUrl(candidate);
-            setIsLoadingStream(false);
           } else {
-            setActiveStreamUrl('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4');
-            setIsLoadingStream(false);
+            setActiveStreamUrl(guaranteedBackup);
           }
+          setIsLoadingStream(false);
         }
       } catch (err) {
         if (!isCancelled) {
           console.error('Stream load error:', err);
-          setActiveStreamUrl('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4');
+          const titleIdStr = title?.id || 'default';
+          const seed = Math.abs(titleIdStr.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0));
+          const guaranteedBackup = RELIABLE_BACKUP_STREAMS[seed % RELIABLE_BACKUP_STREAMS.length];
+          setActiveStreamUrl(guaranteedBackup);
           setIsLoadingStream(false);
         }
       }
@@ -648,6 +658,9 @@ export function VideoPlayerModal({
         <video
           ref={videoRef}
           playsInline
+          onCanPlay={() => setIsLoadingStream(false)}
+          onPlaying={() => setIsLoadingStream(false)}
+          onLoadedData={() => setIsLoadingStream(false)}
           className="h-full w-full object-contain"
           onClick={handleTogglePlay}
         />

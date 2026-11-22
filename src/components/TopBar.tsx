@@ -268,19 +268,19 @@ export function TopBar({
           type="button"
           onClick={onOpenProfile}
           aria-label={`View profile for ${profile.username}`}
-          className="flex h-11 items-center gap-2.5 rounded-2xl bg-[#141414] border border-white/[0.08] pl-2.5 pr-4 text-left transition-colors hover:bg-[#1E1E1E] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5192B]"
+          className="flex h-11 items-center gap-3 rounded-[16px] bg-[#141416] border border-white/[0.04] pl-2.5 pr-4 text-left transition-colors hover:bg-[#1E1E22] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00D2FF]"
         >
           <img
             src={profile.avatarImage}
             alt={profile.username}
             referrerPolicy="no-referrer"
-            className="h-7 w-7 rounded-full object-cover ring-1 ring-white/15"
+            className="h-8 w-8 rounded-full object-cover ring-1 ring-white/10"
           />
           <div className="hidden sm:flex flex-col leading-tight">
-            <span className="text-[13px] font-bold text-white whitespace-nowrap">
+            <span className="text-[13.5px] font-bold text-white tracking-tight whitespace-nowrap">
               {profile.username}
             </span>
-            <span className="text-[11px] font-semibold text-[#FF2A3B] whitespace-nowrap">
+            <span className="text-[11.5px] font-medium text-[#EF4444] whitespace-nowrap">
               View profile
             </span>
           </div>
