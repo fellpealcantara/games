@@ -7,8 +7,8 @@ import { defineConfig } from 'vite';
 export default defineConfig(() => {
   return {
     plugins: [
-      react(),
       tailwindcss(),
+      react(),
       {
         name: 'copy-unbundled-src-assets',
         apply: 'build',

@@ -117,12 +117,15 @@ function loadInitialState(): PersistedState {
 }
 
 function loadInitialStreamingState(): PersistedStreamingState {
+  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const urlMode = urlParams?.get('mode');
+
   try {
     const raw = window.localStorage.getItem(STREAMING_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<PersistedStreamingState>;
       return {
-        appMode: parsed.appMode === 'streaming' ? 'streaming' : 'games',
+        appMode: urlMode === 'streaming' ? 'streaming' : (parsed.appMode === 'streaming' ? 'streaming' : 'games'),
         watchProgress: Array.isArray(parsed.watchProgress)
           ? parsed.watchProgress
           : INITIAL_WATCH_PROGRESS,
@@ -140,7 +143,7 @@ function loadInitialStreamingState(): PersistedStreamingState {
     // Fallback to seeded streaming state
   }
   return {
-    appMode: 'games',
+    appMode: urlMode === 'streaming' ? 'streaming' : 'games',
     watchProgress: INITIAL_WATCH_PROGRESS,
     myListIds: INITIAL_MY_LIST_IDS,
     likedIds: ['stream-1644785443'],
